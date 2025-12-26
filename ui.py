@@ -10,7 +10,7 @@ st.markdown("Upload an image of a Nepali Number .")
 uploaded_file = st.file_uploader("Choose an image", type=["jpg", "jpeg", "png"])
 
 api_url = "http://127.0.0.1:8000/predict"
-api_key = "mysecretapikey"  
+api_key = "MY_API_KEY"  
 
 if uploaded_file:
     st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
@@ -23,10 +23,27 @@ if uploaded_file:
             if response.status_code == 200:
                 result = response.json()
                 st.success(f"Prediction: {result['class']}")
-                # st.info(f"Confidence: {result['confidence']:.2f}")
+               
             else:
                 st.error(f"Error: {response.status_code} - {response.text}")
 
-   
-    if st.button("Predict using Agent"):
-        st.warning("Agent-based prediction not implemented yet. Use model prediction.")
+if st.button("Predict using Agent"):
+    files = {"file": (uploaded_file.name, uploaded_file, uploaded_file.type)}
+    headers = {"x-api-key": api_key}
+
+    with st.spinner("Predicting using agent..."):
+        response = requests.post(
+            "http://127.0.0.1:8000/predict?use_agent=true",
+            files=files,
+            headers=headers
+        )
+
+        if response.status_code == 200:
+            result = response.json()["class"]
+            if result == "unknown class":
+                st.warning("⚠️ This image does not belong to known Nepali digits.")
+            else:
+                st.success(f"Agent Prediction: {result}")
+        else:
+            st.error(f"Error: {response.status_code} - {response.text}")
+
